@@ -30,10 +30,8 @@ After running this script, you can work on your 42 project without worrying abou
 
 ```bash
 # Download the script
-curl -O https://raw.githubusercontent.com/YukiHalf/42-git-mirror/main/git_mirror_setup.sh
-
-# Make it executable
-chmod +x git_mirror_setup.sh
+sudo curl -fsSL https://raw.githubusercontent.com/YukiHalf/42-git-mirror/main/git_mirror_setup.sh -o /usr/local/bin/42-mirror && sudo chmod +x /usr/local/bin/42-mirror
+# Then use it anywhere with: 42-mirror <args>
 ```
 
 ## Usage
