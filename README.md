@@ -37,7 +37,7 @@ sudo curl -fsSL https://raw.githubusercontent.com/YukiHalf/42-git-mirror/main/gi
 ## Usage
 
 ```bash
-./git_mirror_setup.sh <42_vogsphere_repo_link> <github_repo_link> <dir_name>
+./git_mirror_setup.sh <github_repo_link> <42_vogsphere_repo_link>  <dir_name>
 ```
 
 ### Example
