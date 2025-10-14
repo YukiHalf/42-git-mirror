@@ -30,11 +30,30 @@ After running this script, your 42 Vogsphere repository will contain everything 
 ## 📥 Installation
 
 ```bash
-# Download the script
-sudo curl -fsSL https://raw.githubusercontent.com/YukiHalf/42-git-mirror/main/git_mirror_setup.sh -o /usr/local/bin/42-mirror && sudo chmod +x /usr/local/bin/42-mirror
+# Download the script to your home directory
+curl -fsSL https://raw.githubusercontent.com/YukiHalf/42-git-mirror/main/git_mirror_setup.sh -o ~/42-mirror && chmod +x ~/42-mirror
+
+# Add to your PATH (add this line to your ~/.zshrc or ~/.bashrc)
+export PATH="$HOME:$PATH"
+
+# Reload your shell configuration
+source ~/.zshrc  # or source ~/.bashrc
 
 # Then use it anywhere with:
 42-mirror <github_repo_link> <42_vogsphere_repo_link> <dir_name>
+```
+
+**Alternative**: Run directly without installation
+```bash
+# Clone the repository
+git clone git@github.com:YukiHalf/42-git-mirror.git
+cd 42-git-mirror
+
+# Make it executable
+chmod +x git_mirror_setup.sh
+
+# Run it
+./git_mirror_setup.sh <github_repo_link> <42_vogsphere_repo_link> <dir_name>
 ```
 
 ## 🚀 Usage
