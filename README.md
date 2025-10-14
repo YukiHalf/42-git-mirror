@@ -79,6 +79,16 @@ chmod +x git_mirror_setup.sh
 | `42_vogsphere_repo_link` | Your 42 School Vogsphere repository URL (destination) |
 | `dir_name` | Local directory name for the cloned repository |
 
+### ⚡ Quick Command (Advanced Users)
+
+If you prefer a single command without the script:
+
+```bash
+git clone git@github.com:username/repo.git my_project && cd my_project && git push --mirror git@vogsphere.42.fr:repo.git && git remote set-url origin git@vogsphere.42.fr:repo.git
+```
+
+Replace the repository URLs and directory name with your own. This does the same thing but without error handling, colored output, or verification steps.
+
 ## ✨ Features
 
 - ✅ Color-coded output for easy progress tracking
