@@ -1,103 +1,128 @@
 # Git Mirror Setup Script
 
-A bash script to automate the process of cloning a 42 School Vogsphere repository, creating a mirror backup on GitHub, and setting up your local environment to work exclusively with the 42 origin.
+A bash script to automate the process of mirroring your GitHub repository to a 42 School Vogsphere repository, preserving all commit history and branches.
 
-## Purpose
+## 📋 Purpose
 
 This script is designed for 42 School students who want to:
-- Create a GitHub backup of their 42 Vogsphere projects
-- Keep their local repository connected only to the 42 Vogsphere (for grading/evaluation)
-- Avoid accidentally pushing changes to both repositories
+- Transfer an existing GitHub project to their 42 Vogsphere repository
+- Preserve complete git history, commits, and branches
+- Set up their local environment to work exclusively with the 42 origin for evaluations
 
-## What It Does
+## 🔄 What It Does
 
-1. Clones your 42 Vogsphere repository
-2. Adds your GitHub repository as a temporary remote
-3. Mirrors all branches and history to GitHub (one-time backup)
+1. Clones your GitHub repository with full history
+2. Adds your 42 Vogsphere repository as a temporary remote
+3. Mirrors all branches and commit history to 42 Vogsphere (one-time transfer)
 4. Removes the GitHub remote connection
 5. Configures the local repository to only track 42 Vogsphere
 6. Sets up proper upstream tracking for the master branch
 
-After running this script, you can work on your 42 project without worrying about changes being pushed to your GitHub backup.
+After running this script, your 42 Vogsphere repository will contain everything from your GitHub repo, and your local repository will be connected only to 42 Vogsphere for evaluations.
 
-## Prerequisites
+## ✅ Prerequisites
 
 - Git installed on your system
 - SSH keys configured for both 42 Vogsphere and GitHub
-- A GitHub repository created (can be empty)
+- A 42 Vogsphere repository (can be empty)
+- An existing GitHub repository with the code you want to transfer
 
-## Installation
+## 📥 Installation
 
 ```bash
 # Download the script
 sudo curl -fsSL https://raw.githubusercontent.com/YukiHalf/42-git-mirror/main/git_mirror_setup.sh -o /usr/local/bin/42-mirror && sudo chmod +x /usr/local/bin/42-mirror
-# Then use it anywhere with: 42-mirror <args>
+
+# Then use it anywhere with:
+42-mirror <github_repo_link> <42_vogsphere_repo_link> <dir_name>
 ```
 
-## Usage
+## 🚀 Usage
 
 ```bash
-./git_mirror_setup.sh <github_repo_link> <42_vogsphere_repo_link>  <dir_name>
+./git_mirror_setup.sh <github_repo_link> <42_vogsphere_repo_link> <dir_name>
 ```
 
 ### Example
 
 ```bash
 ./git_mirror_setup.sh \
+  git@github.com:username/my-project.git \
   git@vogsphere.42.fr:vogsphere/intra-uuid-project-name.git \
-  git@github.com:username/project-backup.git \
   my_project
 ```
 
 ### Parameters
 
-- `42_vogsphere_repo_link`: Your 42 School Vogsphere repository URL
-- `github_repo_link`: Your GitHub repository URL (for backup)
-- `dir_name`: Local directory name for the cloned repository
+| Parameter | Description |
+|-----------|-------------|
+| `github_repo_link` | Your GitHub repository URL (source) |
+| `42_vogsphere_repo_link` | Your 42 School Vogsphere repository URL (destination) |
+| `dir_name` | Local directory name for the cloned repository |
 
-## Features
+## ✨ Features
 
 - ✅ Color-coded output for easy progress tracking
 - ✅ Step-by-step execution with clear feedback
 - ✅ User confirmation before finalizing changes
 - ✅ Error handling (exits on failure)
 - ✅ Automatic cleanup of GitHub remote
-- ✅ Preserves complete git history in the mirror
+- ✅ Preserves complete git history in the transfer
 
-## What Happens After
+## 📦 What Happens After
 
 After running this script:
 
-- **GitHub repository**: Contains a complete mirror of your 42 project (backup only)
+- **42 Vogsphere repository**: Contains a complete copy of your GitHub project with full history
 - **Local repository**: Connected only to 42 Vogsphere origin
 - **Your workflow**: Push/pull operations only affect the 42 repository
 
-You can safely make changes, commit, and push to your 42 repository without affecting the GitHub backup.
+You can safely work on your project and push changes to your 42 repository for evaluations.
 
-## Important Notes
+## ⚠️ Important Notes
 
-⚠️ **One-time mirror**: The GitHub backup is created once and won't receive further updates automatically.
+- **One-time transfer**: This script transfers your GitHub repository to 42 Vogsphere once. Future updates must be pushed manually.
+- **Evaluation requirements**: Your local repository will be connected only to 42 Vogsphere, which is required for evaluations.
+- **Existing content**: If your 42 Vogsphere repository already contains commits, you may need to force push. The script will guide you through this.
 
-⚠️ **Evaluation requirements**: Always ensure your local repository is connected only to 42 Vogsphere before evaluation.
+## 🔧 Troubleshooting
 
-⚠️ **Manual updates**: If you want to update your GitHub backup later, you'll need to manually push changes to it.
+### "Permission denied" errors
+Make sure your SSH keys are properly configured for both 42 and GitHub.
 
-## Troubleshooting
+```bash
+# Test your SSH connections
+ssh -T git@github.com
+ssh -T git@vogsphere.42.fr
+```
 
-**"Permission denied" errors**: Make sure your SSH keys are properly configured for both 42 and GitHub.
+### "Repository not found"
+Verify that both repository URLs are correct and accessible.
 
-**"Repository not found"**: Verify that both repository URLs are correct and accessible.
+### Script stops at file listing
+This is intentional! Press Enter after verifying the files to continue.
 
-**Script stops at file listing**: This is intentional! Press Enter after verifying the files to continue.
+### Force push required
+If your 42 repository has existing commits, you may need to use `git push -f origin master` to complete the transfer.
 
-## License
+## 📝 License
 
 MIT License - Feel free to use and modify as needed.
 
-## Contributing
+## 🤝 Contributing
 
 Pull requests are welcome! Feel free to improve the script or documentation.
 
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## 📧 Support
+
+If you encounter any issues or have questions, please open an issue on GitHub.
+
 ---
 
-Made for 42 School students 🚀
+Made with ❤️ for 42 School students 🚀
