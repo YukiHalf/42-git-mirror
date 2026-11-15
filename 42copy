@@ -1,0 +1,100 @@
+#!/usr/bin/env bash
+
+set -Eeuo pipefail
+
+readonly PROGRAM=${0##*/}
+
+usage() {
+    cat <<EOF
+Usage: $PROGRAM <git-repository> <vogsphere-repository> [directory]
+
+Copy a Git repository to an empty 42 Vogsphere repository. The source
+default branch becomes master, as expected by Vogsphere. Other branches
+and tags are preserved.
+
+If directory is omitted, the checkout is created as <repository>_vog.
+EOF
+}
+
+die() {
+    printf 'Error: %s\n' "$*" >&2
+    exit 1
+}
+
+step() {
+    printf '\n==> %s\n' "$*"
+}
+
+if (( $# < 2 || $# > 3 )); then
+    usage >&2
+    exit 64
+fi
+
+readonly source_repo=$1
+readonly vogsphere_repo=$2
+
+repo_path=${source_repo%/}
+repo_name=${repo_path##*/}
+repo_name=${repo_name##*:}
+repo_name=${repo_name%.git}
+[[ -n $repo_name ]] || die "Cannot derive a directory name from '$source_repo'."
+
+readonly directory=${3:-"${repo_name}_vog"}
+
+command -v git >/dev/null 2>&1 || die "git is not installed."
+[[ $source_repo != "$vogsphere_repo" ]] || die "Source and destination repositories must differ."
+[[ ! -e $directory ]] || die "Destination path already exists: $directory"
+
+step "Checking the Vogsphere repository"
+if ! destination_refs=$(git ls-remote -- "$vogsphere_repo"); then
+    die "Cannot read the Vogsphere repository: $vogsphere_repo"
+fi
+if [[ -n $destination_refs ]]; then
+    die "The Vogsphere repository is not empty; refusing to overwrite it."
+fi
+
+step "Cloning $source_repo into $directory"
+git clone -- "$source_repo" "$directory"
+cd -- "$directory"
+
+if ! source_branch=$(git symbolic-ref --quiet --short HEAD); then
+    die "The source repository has no checked-out default branch."
+fi
+git rev-parse --verify HEAD >/dev/null 2>&1 ||
+    die "The source repository has no commits to copy."
+
+if [[ $source_branch != master ]] &&
+    git show-ref --verify --quiet refs/remotes/origin/master; then
+    die "The source has both '$source_branch' and 'master'; cannot choose which one should become Vogsphere master."
+fi
+
+step "Preparing source branches"
+while IFS= read -r branch; do
+    [[ $branch == HEAD || $branch == "$source_branch" ]] && continue
+    git show-ref --verify --quiet "refs/heads/$branch" ||
+        git branch --track "$branch" "origin/$branch" >/dev/null
+done < <(git for-each-ref --format='%(refname:strip=3)' refs/remotes/origin)
+
+if [[ $source_branch != master ]]; then
+    git branch -m master
+fi
+
+step "Copying branches and tags to Vogsphere"
+git remote add vogsphere "$vogsphere_repo"
+if ! git push --all vogsphere; then
+    die "Branch push failed. The local clone remains at '$(pwd -P)'; Vogsphere may contain a partial copy."
+fi
+if ! git push --tags vogsphere; then
+    die "Tag push failed. The local clone remains at '$(pwd -P)'; Vogsphere contains the copied branches."
+fi
+
+step "Making Vogsphere the only remote"
+git remote set-url origin "$vogsphere_repo"
+git remote remove vogsphere
+git fetch --prune origin
+git remote set-head origin --auto >/dev/null
+git branch --set-upstream-to=origin/master master >/dev/null
+
+printf '\nCopy complete.\n'
+printf 'Directory: %s\n' "$(pwd -P)"
+printf 'Branch: master -> origin/master\n'
