@@ -6,11 +6,13 @@ readonly PROGRAM=${0##*/}
 
 usage() {
     cat <<EOF
-Usage: $PROGRAM <git-repository> <vogsphere-repository> [directory]
+Usage: $PROGRAM [--override] <git-repository> <vogsphere-repository> [directory]
 
-Copy a Git repository to an empty 42 Vogsphere repository. The source
-default branch becomes master, as expected by Vogsphere. Other branches
-and tags are preserved.
+Copy a Git repository to 42 Vogsphere. The source default branch becomes
+master, as expected by Vogsphere. Other branches and tags are preserved.
+
+By default, the Vogsphere repository must be empty. --override force-updates
+and prunes its existing branches and tags. It never removes a local directory.
 
 If directory is omitted, the checkout is created as <repository>_vog.
 EOF
@@ -24,6 +26,13 @@ die() {
 step() {
     printf '\n==> %s\n' "$*"
 }
+
+override=false
+if [[ ${1:-} == --override ]]; then
+    override=true
+    shift
+fi
+readonly override
 
 if (( $# < 2 || $# > 3 )); then
     usage >&2
@@ -49,8 +58,10 @@ step "Checking the Vogsphere repository"
 if ! destination_refs=$(git ls-remote -- "$vogsphere_repo"); then
     die "Cannot read the Vogsphere repository: $vogsphere_repo"
 fi
-if [[ -n $destination_refs ]]; then
-    die "The Vogsphere repository is not empty; refusing to overwrite it."
+if [[ -n $destination_refs && $override == false ]]; then
+    die "The Vogsphere repository is not empty. Re-run with --override to replace its branches and tags."
+elif [[ -n $destination_refs ]]; then
+    printf 'Warning: --override will force-update and prune Vogsphere branches and tags.\n' >&2
 fi
 
 step "Cloning $source_repo into $directory"
@@ -81,11 +92,19 @@ fi
 
 step "Copying branches and tags to Vogsphere"
 git remote add vogsphere "$vogsphere_repo"
-if ! git push --all vogsphere; then
-    die "Branch push failed. The local clone remains at '$(pwd -P)'; Vogsphere may contain a partial copy."
-fi
-if ! git push --tags vogsphere; then
-    die "Tag push failed. The local clone remains at '$(pwd -P)'; Vogsphere contains the copied branches."
+if [[ $override == true ]]; then
+    if ! git push --force --prune vogsphere \
+        'refs/heads/*:refs/heads/*' \
+        'refs/tags/*:refs/tags/*'; then
+        die "Override push failed. The local clone remains at '$(pwd -P)'; Vogsphere may contain a partial copy."
+    fi
+else
+    if ! git push --all vogsphere; then
+        die "Branch push failed. The local clone remains at '$(pwd -P)'; Vogsphere may contain a partial copy."
+    fi
+    if ! git push --tags vogsphere; then
+        die "Tag push failed. The local clone remains at '$(pwd -P)'; Vogsphere contains the copied branches."
+    fi
 fi
 
 step "Making Vogsphere the only remote"

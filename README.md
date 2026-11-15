@@ -1,16 +1,16 @@
 # 42copy
 
-`42copy` copies a Git repository into a new 42 Vogsphere repository and
-creates a local checkout configured for Vogsphere.
+`42copy` copies a Git repository into a 42 Vogsphere repository and creates
+a local checkout configured for Vogsphere.
 
 The command is designed for the common 42 workflow where GitHub uses
 `main` and Vogsphere expects `master`.
 
 ## What it does
 
-Given a source Git repository and an empty Vogsphere repository, `42copy`:
+Given a source Git repository and a Vogsphere repository, `42copy`:
 
-1. Verifies that the Vogsphere repository is reachable and empty.
+1. Verifies that the Vogsphere repository is reachable and, by default, empty.
 2. Clones the source into `<source-name>_vog`.
 3. Renames the source's default branch to `master`.
 4. Copies the other branches and all tags.
@@ -25,7 +25,7 @@ Commit history is preserved. Remote-tracking refs such as
 - Git
 - Bash
 - SSH access to the source repository and the Vogsphere repository
-- An empty Vogsphere repository
+- An empty Vogsphere repository, unless `--override` is used deliberately
 
 The command can be launched from zsh. It is an executable Bash script, so
 do not source it into the current shell.
@@ -51,7 +51,7 @@ If that export already exists in `~/.zshrc`, do not add it again.
 ## Usage
 
 ```text
-42copy <git-repository> <vogsphere-repository> [directory]
+42copy [--override] <git-repository> <vogsphere-repository> [directory]
 ```
 
 Example:
@@ -75,20 +75,30 @@ To choose a different checkout directory, pass it as the third argument:
 42copy <git-repository> <vogsphere-repository> my_project_vog
 ```
 
+To replace an existing Vogsphere repository deliberately:
+
+```sh
+42copy --override <git-repository> <vogsphere-repository> [directory]
+```
+
+`--override` force-updates matching branches and tags, then prunes destination
+branches and tags that are absent from the source. It does not remove or reuse
+an existing local checkout directory.
+
 Repository URLs may use SSH, HTTPS, or local paths supported by Git.
 
 ## Safety behavior
 
-- An existing checkout path is never overwritten.
-- A Vogsphere repository containing any refs is never overwritten.
-- Pushes do not use `--mirror` or `--force`.
+- An existing checkout path is never overwritten, including with `--override`.
+- A non-empty Vogsphere repository is refused unless `--override` is present.
+- `--override` force-updates and prunes only destination branches and tags.
+- Pushes never use `--mirror`, so remote-tracking refs are not copied.
 - If a push fails, the local checkout remains available for inspection.
 - If the source has distinct default and `master` branches, the command
   stops rather than choosing one silently.
 
-Use a newly allocated Vogsphere repository. If an earlier attempt pushed
-only part of the repository, create or clear the destination deliberately
-before retrying; `42copy` will not delete remote history.
+Prefer a newly allocated Vogsphere repository. Use `--override` only when
+replacing all of its existing branches and tags is intentional.
 
 ## Troubleshooting
 
@@ -103,8 +113,8 @@ ssh -T git@vogsphere.42heilbronn.de
 
 ### `The Vogsphere repository is not empty`
 
-Use an empty Vogsphere repository. The command intentionally refuses to
-replace existing branches or tags.
+Use an empty Vogsphere repository, or add `--override` only if replacing and
+pruning its existing branches and tags is intentional.
 
 ### `Destination path already exists`
 
